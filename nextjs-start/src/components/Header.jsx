@@ -10,7 +10,28 @@ import { addFakeRestaurantsAndReviews } from "@/src/lib/firebase/firestore.js";
 import { useRouter } from "next/navigation";
 
 function useUserSession(initialUser) {
-	return;
+	const [user, setUser] = useState(initialUser);
+	const router = useRouter();
+
+	useEffect(() => {
+			const unsubscribe = onAuthStateChanged(authUser => {
+					setUser(authUser);
+			});
+			return () => {
+					unsubscribe();
+			};
+	}, []);
+
+	useEffect(() => {
+			onAuthStateChanged(authUser => {
+					if (user === undefined) return;
+					if (user?.email !== authUser?.email) {
+							router.refresh();
+					}
+			});
+	}, [user]);
+
+	return user;
 }
 
 export default function Header({initialUser}) {
